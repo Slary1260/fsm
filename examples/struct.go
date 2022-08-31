@@ -1,6 +1,14 @@
 //go:build ignore
 // +build ignore
 
+/*
+ * @Author: tj
+ * @Date: 2022-08-30 17:55:41
+ * @LastEditors: tj
+ * @LastEditTime: 2022-08-31 17:43:46
+ * @FilePath: \fsm\examples\struct.go
+ */
+
 package main
 
 import (
@@ -41,12 +49,12 @@ func (d *Door) enterState(e *fsm.Event) {
 func main() {
 	door := NewDoor("heaven")
 
-	err := door.FSM.Event(context.Background(), "open")
+	err := door.FSM.Event(context.Background(), "open", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = door.FSM.Event(context.Background(), "close")
+	err = door.FSM.Event(context.Background(), "close", "")
 	if err != nil {
 		fmt.Println(err)
 	}

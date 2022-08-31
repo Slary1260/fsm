@@ -38,7 +38,7 @@ func TestSameState(t *testing.T) {
 		},
 		Callbacks{},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -56,7 +56,7 @@ func TestSetState(t *testing.T) {
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'walking'")
 	}
-	err := fsm.Event(context.Background(), "walk")
+	err := fsm.Event(context.Background(), "walk", "")
 	if err != nil {
 		t.Error("transition is expected no error")
 	}
@@ -71,7 +71,7 @@ func TestBadTransition(t *testing.T) {
 		Callbacks{},
 	)
 	fsm.transitionerObj = new(fakeTransitionerObj)
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err == nil {
 		t.Error("bad transition should give an error")
 	}
@@ -86,7 +86,7 @@ func TestInappropriateEvent(t *testing.T) {
 		},
 		Callbacks{},
 	)
-	err := fsm.Event(context.Background(), "close")
+	err := fsm.Event(context.Background(), "close", "")
 	if e, ok := err.(InvalidEventError); !ok && e.Event != "close" && e.State != "closed" {
 		t.Error("expected 'InvalidEventError' with correct state and event")
 	}
@@ -101,7 +101,7 @@ func TestInvalidEvent(t *testing.T) {
 		},
 		Callbacks{},
 	)
-	err := fsm.Event(context.Background(), "lock")
+	err := fsm.Event(context.Background(), "lock", "")
 	if e, ok := err.(UnknownEventError); !ok && e.Event != "close" {
 		t.Error("expected 'UnknownEventError' with correct event")
 	}
@@ -118,32 +118,32 @@ func TestMultipleSources(t *testing.T) {
 		Callbacks{},
 	)
 
-	err := fsm.Event(context.Background(), "first")
+	err := fsm.Event(context.Background(), "first", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
 	if fsm.Current() != "two" {
 		t.Error("expected state to be 'two'")
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
 	if fsm.Current() != "one" {
 		t.Error("expected state to be 'one'")
 	}
-	err = fsm.Event(context.Background(), "first")
+	err = fsm.Event(context.Background(), "first", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
-	err = fsm.Event(context.Background(), "second")
+	err = fsm.Event(context.Background(), "second", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
 	if fsm.Current() != "three" {
 		t.Error("expected state to be 'three'")
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -165,18 +165,18 @@ func TestMultipleEvents(t *testing.T) {
 		Callbacks{},
 	)
 
-	err := fsm.Event(context.Background(), "first")
+	err := fsm.Event(context.Background(), "first", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
 	if fsm.Current() != "reset_one" {
 		t.Error("expected state to be 'reset_one'")
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -184,18 +184,18 @@ func TestMultipleEvents(t *testing.T) {
 		t.Error("expected state to be 'start'")
 	}
 
-	err = fsm.Event(context.Background(), "second")
+	err = fsm.Event(context.Background(), "second", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
 	if fsm.Current() != "reset_two" {
 		t.Error("expected state to be 'reset_two'")
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -231,7 +231,7 @@ func TestGenericCallbacks(t *testing.T) {
 		},
 	)
 
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -267,7 +267,7 @@ func TestSpecificCallbacks(t *testing.T) {
 		},
 	)
 
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -295,7 +295,7 @@ func TestSpecificCallbacksShortform(t *testing.T) {
 		},
 	)
 
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -319,7 +319,7 @@ func TestBeforeEventWithoutTransition(t *testing.T) {
 		},
 	)
 
-	err := fsm.Event(context.Background(), "dontrun")
+	err := fsm.Event(context.Background(), "dontrun", "")
 	if e, ok := err.(NoTransitionError); !ok && e.Err != nil {
 		t.Error("expected 'NoTransitionError' without custom error")
 	}
@@ -344,7 +344,7 @@ func TestCancelBeforeGenericEvent(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -362,7 +362,7 @@ func TestCancelBeforeSpecificEvent(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -380,7 +380,7 @@ func TestCancelLeaveGenericState(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -398,7 +398,7 @@ func TestCancelLeaveSpecificState(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -416,7 +416,7 @@ func TestCancelWithError(t *testing.T) {
 			},
 		},
 	)
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if _, ok := err.(CanceledError); !ok {
 		t.Error("expected only 'CanceledError'")
 	}
@@ -442,7 +442,7 @@ func TestAsyncTransitionGenericState(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -467,7 +467,7 @@ func TestAsyncTransitionSpecificState(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
+	_ = fsm.Event(context.Background(), "run", "")
 	if fsm.Current() != "start" {
 		t.Error("expected state to be 'start'")
 	}
@@ -493,8 +493,8 @@ func TestAsyncTransitionInProgress(t *testing.T) {
 			},
 		},
 	)
-	_ = fsm.Event(context.Background(), "run")
-	err := fsm.Event(context.Background(), "reset")
+	_ = fsm.Event(context.Background(), "run", "")
+	err := fsm.Event(context.Background(), "reset", "")
 	if e, ok := err.(InTransitionError); !ok && e.Event != "reset" {
 		t.Error("expected 'InTransitionError' with correct state")
 	}
@@ -502,7 +502,7 @@ func TestAsyncTransitionInProgress(t *testing.T) {
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
-	err = fsm.Event(context.Background(), "reset")
+	err = fsm.Event(context.Background(), "reset", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -537,7 +537,7 @@ func TestCallbackNoError(t *testing.T) {
 			},
 		},
 	)
-	e := fsm.Event(context.Background(), "run")
+	e := fsm.Event(context.Background(), "run", "")
 	if e != nil {
 		t.Error("expected no error")
 	}
@@ -555,7 +555,7 @@ func TestCallbackError(t *testing.T) {
 			},
 		},
 	)
-	e := fsm.Event(context.Background(), "run")
+	e := fsm.Event(context.Background(), "run", "")
 	if e.Error() != "error" {
 		t.Error("expected error to be 'error'")
 	}
@@ -582,7 +582,7 @@ func TestCallbackArgs(t *testing.T) {
 			},
 		},
 	)
-	err := fsm.Event(context.Background(), "run", "test")
+	err := fsm.Event(context.Background(), "run", "", "test")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -607,7 +607,7 @@ func TestCallbackPanic(t *testing.T) {
 			},
 		},
 	)
-	e := fsm.Event(context.Background(), "run")
+	e := fsm.Event(context.Background(), "run", "")
 	if e.Error() != "error" {
 		t.Error("expected error to be 'error'")
 	}
@@ -626,7 +626,7 @@ func TestNoDeadLock(t *testing.T) {
 			},
 		},
 	)
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -649,7 +649,7 @@ func TestThreadSafetyRaceCondition(t *testing.T) {
 		defer wg.Done()
 		_ = fsm.Current()
 	}()
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if err != nil {
 		t.Errorf("transition failed %v", err)
 	}
@@ -677,7 +677,7 @@ func TestDoubleTransition(t *testing.T) {
 					// calls to Event(...). It will then fail as an inappropriate transition as we
 					// have changed state.
 					go func() {
-						if err := fsm.Event(context.Background(), "run", "second run"); err != nil {
+						if err := fsm.Event(context.Background(), "run", "", "second run"); err != nil {
 							fmt.Println(err)
 							wg.Done() // It should fail, and then we unfreeze the test.
 						}
@@ -689,7 +689,7 @@ func TestDoubleTransition(t *testing.T) {
 			},
 		},
 	)
-	if err := fsm.Event(context.Background(), "run"); err != nil {
+	if err := fsm.Event(context.Background(), "run", ""); err != nil {
 		fmt.Println(err)
 	}
 	wg.Wait()
@@ -719,7 +719,7 @@ func TestContextInCallbacks(t *testing.T) {
 	go func() {
 		cancel()
 	}()
-	fsm.Event(ctx, "run")
+	fsm.Event(ctx, "run", "")
 	time.Sleep(20 * time.Millisecond)
 
 	if !enterEndAsyncWorkDone {
@@ -740,7 +740,7 @@ func TestNoTransition(t *testing.T) {
 		},
 		Callbacks{},
 	)
-	err := fsm.Event(context.Background(), "run")
+	err := fsm.Event(context.Background(), "run", "")
 	if _, ok := err.(NoTransitionError); !ok {
 		t.Error("expected 'NoTransitionError'")
 	}
@@ -784,7 +784,7 @@ func ExampleNewFSM() {
 		},
 	)
 	fmt.Println(fsm.Current())
-	err := fsm.Event(context.Background(), "warn")
+	err := fsm.Event(context.Background(), "warn", "")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -840,8 +840,8 @@ func ExampleFSM_Can() {
 		},
 		Callbacks{},
 	)
-	fmt.Println(fsm.Can("open"))
-	fmt.Println(fsm.Can("close"))
+	fmt.Println(fsm.Can("open", ""))
+	fmt.Println(fsm.Can("close", ""))
 	// Output:
 	// true
 	// false
@@ -874,8 +874,8 @@ func ExampleFSM_Cannot() {
 		},
 		Callbacks{},
 	)
-	fmt.Println(fsm.Cannot("open"))
-	fmt.Println(fsm.Cannot("close"))
+	fmt.Println(fsm.Cannot("open", ""))
+	fmt.Println(fsm.Cannot("close", ""))
 	// Output:
 	// false
 	// true
@@ -891,12 +891,12 @@ func ExampleFSM_Event() {
 		Callbacks{},
 	)
 	fmt.Println(fsm.Current())
-	err := fsm.Event(context.Background(), "open")
+	err := fsm.Event(context.Background(), "open", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(fsm.Current())
-	err = fsm.Event(context.Background(), "close")
+	err = fsm.Event(context.Background(), "close", "")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -920,7 +920,7 @@ func ExampleFSM_Transition() {
 			},
 		},
 	)
-	err := fsm.Event(context.Background(), "open")
+	err := fsm.Event(context.Background(), "open", "")
 	if e, ok := err.(AsyncError); !ok && e.Err != nil {
 		fmt.Println(err)
 	}

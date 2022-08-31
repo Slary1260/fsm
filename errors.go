@@ -17,12 +17,17 @@ package fsm
 // InvalidEventError is returned by FSM.Event() when the event cannot be called
 // in the current state.
 type InvalidEventError struct {
-	Event string
-	State string
+	Event      string
+	State      string
+	ActionName string
 }
 
 func (e InvalidEventError) Error() string {
-	return "event " + e.Event + " inappropriate in current state " + e.State
+	if e.ActionName == "" {
+		return "event " + e.Event + " inappropriate in current state " + e.State
+	}
+
+	return "event " + e.Event + "and action " + e.ActionName + " inappropriate in current state " + e.State
 }
 
 // UnknownEventError is returned by FSM.Event() when the event is not defined.

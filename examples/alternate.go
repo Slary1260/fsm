@@ -1,6 +1,14 @@
 //go:build ignore
 // +build ignore
 
+/*
+ * @Author: tj
+ * @Date: 2022-08-30 17:55:41
+ * @LastEditors: tj
+ * @LastEditTime: 2022-08-31 17:43:17
+ * @FilePath: \fsm\examples\alternate.go
+ */
+
 package main
 
 import (
@@ -38,28 +46,28 @@ func main() {
 
 	fmt.Println(fsm.Current())
 
-	err := fsm.Event(context.Background(), "scan")
+	err := fsm.Event(context.Background(), "scan", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("1:" + fsm.Current())
 
-	err = fsm.Event(context.Background(), "working")
+	err = fsm.Event(context.Background(), "working", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("2:" + fsm.Current())
 
-	err = fsm.Event(context.Background(), "situation")
+	err = fsm.Event(context.Background(), "situation", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("3:" + fsm.Current())
 
-	err = fsm.Event(context.Background(), "finish")
+	err = fsm.Event(context.Background(), "finish", "")
 	if err != nil {
 		fmt.Println(err)
 	}
