@@ -1,9 +1,19 @@
+//go:build ignore
 // +build ignore
+
+/*
+ * @Author: tj
+ * @Date: 2022-08-30 17:55:41
+ * @LastEditors: tj
+ * @LastEditTime: 2022-08-30 17:56:46
+ * @FilePath: \newfsm\examples\struct.go
+ */
 
 package main
 
 import (
 	"fmt"
+
 	"github.com/looplab/fsm"
 )
 
@@ -38,12 +48,12 @@ func (d *Door) enterState(e *fsm.Event) {
 func main() {
 	door := NewDoor("heaven")
 
-	err := door.FSM.Event("open")
+	err := door.FSM.Event("open", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = door.FSM.Event("close")
+	err = door.FSM.Event("close", "")
 	if err != nil {
 		fmt.Println(err)
 	}

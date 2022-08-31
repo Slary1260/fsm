@@ -1,9 +1,19 @@
+//go:build ignore
 // +build ignore
+
+/*
+ * @Author: tj
+ * @Date: 2022-08-30 17:55:41
+ * @LastEditors: tj
+ * @LastEditTime: 2022-08-30 17:56:30
+ * @FilePath: \newfsm\examples\alternate.go
+ */
 
 package main
 
 import (
 	"fmt"
+
 	"github.com/looplab/fsm"
 )
 
@@ -35,28 +45,28 @@ func main() {
 
 	fmt.Println(fsm.Current())
 
-	err := fsm.Event("scan")
+	err := fsm.Event("scan", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("1:" + fsm.Current())
 
-	err = fsm.Event("working")
+	err = fsm.Event("working", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("2:" + fsm.Current())
 
-	err = fsm.Event("situation")
+	err = fsm.Event("situation", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println("3:" + fsm.Current())
 
-	err = fsm.Event("finish")
+	err = fsm.Event("finish", "")
 	if err != nil {
 		fmt.Println(err)
 	}

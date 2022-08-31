@@ -21,7 +21,6 @@
 //
 // Fysom for Python
 // https://github.com/oxplot/fysom (forked at https://github.com/mriehl/fysom)
-//
 package fsm
 
 import (
@@ -40,9 +39,16 @@ type transitioner interface {
 type FSM struct {
 	// current is the state that the FSM is currently in.
 	current string
+	// stateMu guards access to the current state.
+	stateMu sync.RWMutex
 
 	// transitions maps events and source states to destination states.
 	transitions map[eKey]string
+	// eventMu guards access to Event() and Transition().
+	eventMu sync.Mutex
+
+	actions  map[eKey]Callback
+	actionMu sync.Mutex
 
 	// callbacks maps events and targets to callback functions.
 	callbacks map[cKey]Callback
@@ -53,14 +59,9 @@ type FSM struct {
 	// transitionerObj calls the FSM's transition() function.
 	transitionerObj transitioner
 
-	// stateMu guards access to the current state.
-	stateMu sync.RWMutex
-	// eventMu guards access to Event() and Transition().
-	eventMu sync.Mutex
 	// metadata can be used to store and load data that maybe used across events
 	// use methods SetMetadata() and Metadata() to store and load data
-	metadata map[string]interface{}
-
+	metadata   map[string]interface{}
 	metadataMu sync.RWMutex
 }
 
@@ -80,6 +81,8 @@ type EventDesc struct {
 	// Dst is the destination state that the FSM will be in if the transition
 	// succeds.
 	Dst string
+
+	ActionFunc Callbacks
 }
 
 // Callback is a function type that callbacks should use. Event is the current
@@ -133,6 +136,7 @@ func NewFSM(initial string, events []EventDesc, callbacks map[string]Callback) *
 		transitionerObj: &transitionerStruct{},
 		current:         initial,
 		transitions:     make(map[eKey]string),
+		actions:         make(map[eKey]Callback),
 		callbacks:       make(map[cKey]Callback),
 		metadata:        make(map[string]interface{}),
 	}
@@ -142,11 +146,21 @@ func NewFSM(initial string, events []EventDesc, callbacks map[string]Callback) *
 	allStates := make(map[string]bool)
 	for _, e := range events {
 		for _, src := range e.Src {
-			f.transitions[eKey{e.Name, src}] = e.Dst
-			allStates[src] = true
-			allStates[e.Dst] = true
+			if e.ActionFunc == nil || len(e.ActionFunc) == 0 {
+				f.transitions[eKey{e.Name, src, ""}] = e.Dst
+				allStates[src] = true
+				allStates[e.Dst] = true
+			} else {
+				for actionName, actionFun := range e.ActionFunc {
+					f.transitions[eKey{e.Name, src, actionName}] = e.Dst
+					f.actions[eKey{e.Name, src, actionName}] = actionFun
+					allStates[src] = true
+					allStates[e.Dst] = true
+				}
+			}
+			allEvents[e.Name] = true
 		}
-		allEvents[e.Name] = true
+
 	}
 
 	// Map all callbacks to events/states.
@@ -224,14 +238,19 @@ func (f *FSM) SetState(state string) {
 	f.stateMu.Lock()
 	defer f.stateMu.Unlock()
 	f.current = state
-	return
 }
 
 // Can returns true if event can occur in the current state.
-func (f *FSM) Can(event string) bool {
+func (f *FSM) Can(event, actionName string) bool {
 	f.stateMu.RLock()
 	defer f.stateMu.RUnlock()
-	_, ok := f.transitions[eKey{event, f.current}]
+
+	ok := false
+	if actionName == "" {
+		_, ok = f.transitions[eKey{event, f.current, ""}]
+	} else {
+		_, ok = f.transitions[eKey{event, f.current, actionName}]
+	}
 	return ok && (f.transition == nil)
 }
 
@@ -251,8 +270,8 @@ func (f *FSM) AvailableTransitions() []string {
 
 // Cannot returns true if event can not occure in the current state.
 // It is a convenience method to help code read nicely.
-func (f *FSM) Cannot(event string) bool {
-	return !f.Can(event)
+func (f *FSM) Cannot(event, actionName string) bool {
+	return !f.Can(event, actionName)
 }
 
 // Metadata returns the value stored in metadata
@@ -287,22 +306,52 @@ func (f *FSM) SetMetadata(key string, dataValue interface{}) {
 //
 // The last error should never occur in this situation and is a sign of an
 // internal bug.
-func (f *FSM) Event(event string, args ...interface{}) error {
+func (f *FSM) Event(event, actionName string, args ...interface{}) error {
 	f.eventMu.Lock()
 	defer f.eventMu.Unlock()
 
 	f.stateMu.RLock()
 	defer f.stateMu.RUnlock()
 
+	f.actionMu.Lock()
+	defer f.actionMu.Unlock()
+
 	if f.transition != nil {
 		return InTransitionError{event}
 	}
 
-	dst, ok := f.transitions[eKey{event, f.current}]
+	if actionName != "" {
+		dst, ok := f.transitions[eKey{event, f.current, actionName}]
+		if !ok {
+			for ekey := range f.transitions {
+				if ekey.event == event {
+					return InvalidEventError{event, f.current, actionName}
+				}
+			}
+			return UnknownEventError{event}
+		}
+
+		e := &Event{f, event, f.current, dst, nil, args, false, false}
+
+		fn, ok := f.actions[eKey{event, f.current, actionName}]
+		if !ok {
+			for ekey := range f.transitions {
+				if ekey.event == event {
+					return InvalidEventError{event, f.current, actionName}
+				}
+			}
+			return UnknownEventError{event}
+		}
+
+		fn(e)
+		return nil
+	}
+
+	dst, ok := f.transitions[eKey{event, f.current, ""}]
 	if !ok {
 		for ekey := range f.transitions {
 			if ekey.event == event {
-				return InvalidEventError{event, f.current}
+				return InvalidEventError{event, f.current, ""}
 			}
 		}
 		return UnknownEventError{event}
@@ -465,4 +514,6 @@ type eKey struct {
 
 	// src is the source from where the event can transition.
 	src string
+
+	action string
 }

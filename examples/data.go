@@ -1,4 +1,13 @@
+//go:build ignore
 // +build ignore
+
+/*
+ * @Author: tj
+ * @Date: 2022-08-30 17:55:41
+ * @LastEditors: tj
+ * @LastEditTime: 2022-08-30 17:56:35
+ * @FilePath: \newfsm\examples\data.go
+ */
 
 package main
 
@@ -32,14 +41,14 @@ func main() {
 
 	fmt.Println(fsm.Current())
 
-	err := fsm.Event("produce")
+	err := fsm.Event("produce", "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	fmt.Println(fsm.Current())
 
-	err = fsm.Event("consume")
+	err = fsm.Event("consume", "")
 	if err != nil {
 		fmt.Println(err)
 	}
