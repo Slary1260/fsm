@@ -2,8 +2,8 @@
  * @Author: tj
  * @Date: 2022-08-30 17:58:56
  * @LastEditors: tj
- * @LastEditTime: 2022-08-31 09:09:35
- * @FilePath: \newfsm\examples\action.go
+ * @LastEditTime: 2022-08-31 16:55:50
+ * @FilePath: \fsm\examples\action.go
  */
 package main
 
@@ -18,12 +18,14 @@ func main() {
 		"closed",
 		fsm.Events{
 			{Name: "open", Src: []string{"closed"}, Dst: "open"},
-			{Name: "open", Src: []string{"closed"}, Dst: "open", ActionFunc: fsm.Callbacks{"action1": func(e *fsm.Event) {
-				fmt.Println("action1: " + e.FSM.Current())
-			},
+			{Name: "open", Src: []string{"closed"}, Dst: "open", ActionFunc: fsm.Callbacks{
+				"action1": func(e *fsm.Event) {
+					fmt.Println("action1: " + e.FSM.Current())
+				},
 				"action2": func(e *fsm.Event) {
 					fmt.Println("action2: " + e.FSM.Current())
-				}}},
+				},
+			}},
 			{Name: "close", Src: []string{"open"}, Dst: "closed"},
 		},
 		fsm.Callbacks{},

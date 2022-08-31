@@ -160,7 +160,6 @@ func NewFSM(initial string, events []EventDesc, callbacks map[string]Callback) *
 			}
 			allEvents[e.Name] = true
 		}
-
 	}
 
 	// Map all callbacks to events/states.
